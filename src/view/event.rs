@@ -1,6 +1,7 @@
 use glium;
 use glium::backend::glutin::glutin::EventsLoop;
-use glium::Surface;
+use glium::glutin::Event;
+use glium::{glutin, Surface};
 
 pub struct EventHandler {
     pub event_loop: EventsLoop,
@@ -9,11 +10,11 @@ pub struct EventHandler {
 impl EventHandler {
     pub fn new() -> Self {
         EventHandler {
-            event_loop: glium::glutin::EventsLoop::new(),
+            event_loop: glutin::EventsLoop::new(),
         }
     }
 
-    pub fn start(&mut self, display: &glium::Display, ref mut ui_manager: super::UiDispatcher) {
+    pub fn start(&mut self, display: &glium::Display, ref mut ui_dispatcher: super::UiDispatcher) {
         let mut renderer = conrod_glium::Renderer::new(display).unwrap();
         let image_map = conrod_core::image::Map::<glium::texture::Texture2d>::new();
 
@@ -27,17 +28,22 @@ impl EventHandler {
             if events.is_empty() {
                 self.event_loop.run_forever(|event| {
                     events.push(event);
-                    glium::glutin::ControlFlow::Break
+                    glutin::ControlFlow::Break
                 })
             }
 
+            let mut poin_events = Vec::new();
             for event in events.drain(..) {
+                match PoinEvent::new(event.clone()) {
+                    PoinEvent::None => (),
+                    e => poin_events.push(e),
+                }
                 match event.clone() {
-                    glium::glutin::Event::WindowEvent { event, .. } => match event {
-                        glium::glutin::WindowEvent::KeyboardInput {
+                    glutin::Event::WindowEvent { event, .. } => match event {
+                        glutin::WindowEvent::KeyboardInput {
                             input:
-                                glium::glutin::KeyboardInput {
-                                    virtual_keycode: Some(glium::glutin::VirtualKeyCode::Escape),
+                                glutin::KeyboardInput {
+                                    virtual_keycode: Some(glutin::VirtualKeyCode::Escape),
                                     ..
                                 },
                             ..
@@ -48,9 +54,9 @@ impl EventHandler {
                 };
             }
 
-            ui_manager.dispatch();
+            ui_dispatcher.dispatch(poin_events);
 
-            if let Some(primitives) = ui_manager.ui.draw_if_changed() {
+            if let Some(primitives) = ui_dispatcher.ui.draw_if_changed() {
                 renderer.fill(display, primitives, &image_map);
                 let mut target = display.draw();
                 target.clear_color(0., 0., 0., 0.);
@@ -58,5 +64,33 @@ impl EventHandler {
                 target.finish().unwrap();
             }
         }
+    }
+}
+
+pub enum PoinEvent {
+    Move([f64; 2]),
+    None,
+}
+
+impl PoinEvent {
+    pub fn new(event: Event) -> Self {
+        match event {
+            glutin::Event::WindowEvent { event, .. } => match event {
+                glutin::WindowEvent::KeyboardInput { input, .. } => match input {
+                    glutin::KeyboardInput {
+                        virtual_keycode, ..
+                    } => match virtual_keycode {
+                        Some(glutin::VirtualKeyCode::Left) => return PoinEvent::Move([-2.0, 0.0]),
+                        Some(glutin::VirtualKeyCode::Right) => return PoinEvent::Move([2.0, 0.0]),
+                        Some(glutin::VirtualKeyCode::Up) => return PoinEvent::Move([0.0, 2.0]),
+                        Some(glutin::VirtualKeyCode::Down) => return PoinEvent::Move([0.0, -2.0]),
+                        _ => (),
+                    },
+                },
+                _ => (),
+            },
+            _ => (),
+        };
+        return PoinEvent::None;
     }
 }

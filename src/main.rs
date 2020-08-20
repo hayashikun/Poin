@@ -3,8 +3,8 @@ extern crate conrod_core;
 
 mod view;
 
-const WIDTH: u32 = 400;
-const HEIGHT: u32 = 300;
+const WIDTH: u32 = 800;
+const HEIGHT: u32 = 600;
 
 fn main() {
     let mut event_handler = view::EventHandler::new();

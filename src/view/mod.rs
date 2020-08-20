@@ -1,5 +1,6 @@
 pub use display::display;
 pub use event::EventHandler;
+pub use event::PoinEvent;
 pub use ui_dispatcher::UiDispatcher;
 
 pub mod display;
