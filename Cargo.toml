@@ -5,3 +5,6 @@ authors = ["Ryosuke Hayashi <hayashi@hayashikun.com>"]
 edition = "2018"
 
 [dependencies]
+conrod_core = "0.70.0"
+conrod_glium = "0.70.0"
+glium = "*"
