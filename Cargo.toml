@@ -5,3 +5,4 @@ authors = ["Ryosuke Hayashi <hayashi@hayashikun.com>"]
 edition = "2018"
 
 [dependencies]
+druid = "0.6.0"
