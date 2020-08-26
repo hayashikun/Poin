@@ -4,8 +4,11 @@ extern crate conrod_core;
 mod grpc;
 mod view;
 
-fn main() {
-    grpc::hello::connect();
+#[tokio::main]
+async fn main() {
+    tokio::spawn(async {
+        grpc::hello::connect().await;
+    });
 
     let mut event_handler = view::EventHandler::new();
     let display = view::display(&event_handler.event_loop);

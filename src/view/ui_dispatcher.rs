@@ -54,6 +54,10 @@ impl UiDispatcher {
             .xy(self.state.circle_center)
             .color(conrod_core::color::RED);
         circle.set(self.widget_ids.circle, cell.borrow_mut());
-        self.state.init = true;
+        if !self.state.init
+            && (self.state.circle_center[0] != 0.0 || self.state.circle_center[1] != 0.0)
+        {
+            self.state.init = true;
+        }
     }
 }
