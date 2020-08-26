@@ -8,8 +8,9 @@ mod view;
 #[tokio::main]
 async fn main() {
     tokio::spawn(async {
-        let task = grpc::hello::connect().await;
-        task.unwrap_err();
+        // let result = grpc::hello::connect().await;
+        let result = grpc::hand_tracking::connect().await;
+        println!("{:?}", result);
     });
 
     let mut event_handler = event::EventHandler::new();

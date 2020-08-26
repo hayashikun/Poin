@@ -1,7 +1,8 @@
-use hello::greeter_client::GreeterClient;
-use hello::HelloRequest;
+#[warn(dead_code)]
+use qoin_grpc::greeter_client::GreeterClient;
+use qoin_grpc::HelloRequest;
 
-pub mod hello {
+pub mod qoin_grpc {
     tonic::include_proto!("qoin");
 }
 
@@ -20,7 +21,7 @@ pub async fn connect() -> Result<(), Box<dyn std::error::Error>> {
     let response = client.hello_stream(request).await?;
     let mut inbound = response.into_inner();
     while let Some(_message) = inbound.message().await? {
-        // println!("MESSAGE = {:?}", message);
+        println!("MESSAGE = {:?}", _message);
     }
     Ok(())
 }
