@@ -35,8 +35,8 @@ impl EventHandler {
             let mut poin_events = Vec::new();
             for event in events.drain(..) {
                 match PoinEvent::new(event.clone()) {
-                    PoinEvent::None => (),
-                    e => poin_events.push(e),
+                    Some(e) => poin_events.push(e),
+                    _ => (),
                 }
                 match event.clone() {
                     glutin::Event::WindowEvent { event, .. } => match event {
@@ -69,21 +69,29 @@ impl EventHandler {
 
 pub enum PoinEvent {
     Move([f64; 2]),
-    None,
+    MoveTo([f64; 2]),
 }
 
 impl PoinEvent {
-    pub fn new(event: Event) -> Self {
+    pub fn new(event: Event) -> Option<Self> {
         match event {
             glutin::Event::WindowEvent { event, .. } => match event {
                 glutin::WindowEvent::KeyboardInput { input, .. } => match input {
                     glutin::KeyboardInput {
                         virtual_keycode, ..
                     } => match virtual_keycode {
-                        Some(glutin::VirtualKeyCode::Left) => return PoinEvent::Move([-2.0, 0.0]),
-                        Some(glutin::VirtualKeyCode::Right) => return PoinEvent::Move([2.0, 0.0]),
-                        Some(glutin::VirtualKeyCode::Up) => return PoinEvent::Move([0.0, 2.0]),
-                        Some(glutin::VirtualKeyCode::Down) => return PoinEvent::Move([0.0, -2.0]),
+                        Some(glutin::VirtualKeyCode::Left) => {
+                            return Some(PoinEvent::Move([-10.0, 0.0]))
+                        }
+                        Some(glutin::VirtualKeyCode::Right) => {
+                            return Some(PoinEvent::Move([10.0, 0.0]))
+                        }
+                        Some(glutin::VirtualKeyCode::Up) => {
+                            return Some(PoinEvent::Move([0.0, 10.0]))
+                        }
+                        Some(glutin::VirtualKeyCode::Down) => {
+                            return Some(PoinEvent::Move([0.0, -10.0]))
+                        }
                         _ => (),
                     },
                 },
@@ -91,6 +99,6 @@ impl PoinEvent {
             },
             _ => (),
         };
-        return PoinEvent::None;
+        return None;
     }
 }

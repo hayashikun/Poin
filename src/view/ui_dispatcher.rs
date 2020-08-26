@@ -1,7 +1,8 @@
 use std::borrow::BorrowMut;
 
-use crate::view::PoinEvent;
 use conrod_core::{widget, Colorable, Point, Positionable, Ui, UiBuilder, Widget};
+
+use crate::view::PoinEvent;
 
 widget_ids! {
     pub struct WidgetIds {
@@ -11,6 +12,7 @@ widget_ids! {
 }
 
 struct UiState {
+    pub init: bool,
     pub circle_center: Point,
 }
 
@@ -28,6 +30,7 @@ impl UiDispatcher {
             ui,
             widget_ids: ids,
             state: UiState {
+                init: false,
                 circle_center: [0.0, 0.0],
             },
         }
@@ -41,21 +44,16 @@ impl UiDispatcher {
                     self.state.circle_center[0] += xy[0];
                     self.state.circle_center[1] += xy[1];
                 }
-                _ => (),
+                PoinEvent::MoveTo(xy) => {
+                    self.state.circle_center[0] = xy[0];
+                    self.state.circle_center[1] = xy[1];
+                }
             }
         }
-        let circle = widget::Circle::fill(50.)
+        let circle = widget::Circle::fill(if self.state.init { 10.0 } else { 0.0 })
             .xy(self.state.circle_center)
-            .color(conrod_core::color::BLUE)
-            .depth(0.0);
+            .color(conrod_core::color::RED);
         circle.set(self.widget_ids.circle, cell.borrow_mut());
-
-        let mut rect_center = self.state.circle_center.clone();
-        rect_center[0] += 40.0;
-        let rect = widget::Rectangle::fill([50.0, 50.0])
-            .xy(rect_center)
-            .color(conrod_core::color::RED)
-            .depth(0.5);
-        rect.set(self.widget_ids.rect, cell.borrow_mut());
+        self.state.init = true;
     }
 }
