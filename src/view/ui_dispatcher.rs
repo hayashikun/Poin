@@ -2,7 +2,7 @@ use std::borrow::BorrowMut;
 
 use conrod_core::{widget, Colorable, Point, Positionable, Ui, UiBuilder, Widget};
 
-use crate::view::PoinEvent;
+use crate::event::UIAction;
 
 widget_ids! {
     pub struct WidgetIds {
@@ -36,15 +36,15 @@ impl UiDispatcher {
         }
     }
 
-    pub fn dispatch(&mut self, events: Vec<PoinEvent>) {
+    pub fn dispatch(&mut self, actions: Vec<UIAction>) {
         let mut cell = self.ui.set_widgets();
-        for e in events {
-            match e {
-                PoinEvent::Move(xy) => {
+        for a in actions {
+            match a {
+                UIAction::Move(xy) => {
                     self.state.circle_center[0] += xy[0];
                     self.state.circle_center[1] += xy[1];
                 }
-                PoinEvent::MoveTo(xy) => {
+                UIAction::MoveTo(xy) => {
                     self.state.circle_center[0] = xy[0];
                     self.state.circle_center[1] = xy[1];
                 }
