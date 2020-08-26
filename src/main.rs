@@ -1,9 +1,12 @@
 #[macro_use]
 extern crate conrod_core;
 
+mod grpc;
 mod view;
 
 fn main() {
+    grpc::hello::connect();
+
     let mut event_handler = view::EventHandler::new();
     let display = view::display(&event_handler.event_loop);
     let size = display.gl_window().window().get_outer_size();

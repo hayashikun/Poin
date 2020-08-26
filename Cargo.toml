@@ -8,3 +8,9 @@ edition = "2018"
 conrod_core = "0.70.0"
 conrod_glium = "0.70.0"
 glium = "*"
+tonic = "0.3"
+prost = "0.6"
+tokio = { version = "0.2", features = ["macros"] }
+
+[build-dependencies]
+tonic-build = "0.3"
