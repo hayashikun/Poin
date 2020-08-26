@@ -78,15 +78,15 @@ enum Action {
     UI { action: UIAction },
 }
 pub enum UIAction {
-    Move([f64; 2]),
-    MoveTo([f64; 2]),
+    Move { x: f64, y: f64 },
+    MoveTo { x: f64, y: f64, normalized: bool },
 }
 
 impl Action {
     pub fn new(event: Event) -> Option<Self> {
         fn move_action(x: f64, y: f64) -> Option<Action> {
             Some(Action::UI {
-                action: UIAction::Move([x, y]),
+                action: UIAction::Move { x, y },
             })
         }
 

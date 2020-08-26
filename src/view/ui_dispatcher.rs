@@ -14,6 +14,8 @@ widget_ids! {
 struct UiState {
     pub init: bool,
     pub circle_center: Point,
+    pub window_width: f64,
+    pub window_height: f64,
 }
 
 pub struct UiDispatcher {
@@ -32,6 +34,8 @@ impl UiDispatcher {
             state: UiState {
                 init: false,
                 circle_center: [0.0, 0.0],
+                window_width: width,
+                window_height: height,
             },
         }
     }
@@ -40,13 +44,17 @@ impl UiDispatcher {
         let mut cell = self.ui.set_widgets();
         for a in actions {
             match a {
-                UIAction::Move(xy) => {
-                    self.state.circle_center[0] += xy[0];
-                    self.state.circle_center[1] += xy[1];
+                UIAction::Move { x, y } => {
+                    self.state.circle_center[0] += x;
+                    self.state.circle_center[1] += y;
                 }
-                UIAction::MoveTo(xy) => {
-                    self.state.circle_center[0] = xy[0];
-                    self.state.circle_center[1] = xy[1];
+                UIAction::MoveTo { x, y, normalized } => {
+                    if normalized {
+                        let x = x * self.state.window_width;
+                        let y = y * self.state.window_height;
+                    }
+                    self.state.circle_center[0] = x;
+                    self.state.circle_center[1] = y;
                 }
             }
         }
