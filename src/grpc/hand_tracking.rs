@@ -1,11 +1,16 @@
+use glium::backend::glutin::glutin::EventsLoopProxy;
 use qoin_grpc::hand_tracking_client::HandTrackingClient;
 use qoin_grpc::HandTrackingRequest;
+use std::sync::mpsc::Sender;
 
 pub mod qoin_grpc {
     tonic::include_proto!("qoin");
 }
 
-pub async fn connect() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn connect(
+    proxy: EventsLoopProxy,
+    tx: Sender<[f64; 2]>,
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = HandTrackingClient::connect("http://[::1]:50051").await?;
 
     let request = tonic::Request::new(HandTrackingRequest {});
@@ -18,7 +23,8 @@ pub async fn connect() -> Result<(), Box<dyn std::error::Error>> {
             let y_sum: f64 = landmark_list.landmark.iter().map(|l| l.y as f64).sum();
             let x = x_sum / landmark_list.landmark.len() as f64;
             let y = y_sum / landmark_list.landmark.len() as f64;
-            println!("{:?}", (x, y));
+            tx.send([x, y]);
+            proxy.wakeup();
         }
     }
     Ok(())

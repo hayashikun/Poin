@@ -5,6 +5,7 @@ use glium::glutin::EventsLoop;
 pub fn display(event_loop: &EventsLoop) -> glium::Display {
     let window = glium::glutin::WindowBuilder::new()
         .with_title("Poin")
+        .with_always_on_top(true)
         .with_transparency(true)
         .with_maximized(true)
         .with_titlebar_hidden(true)

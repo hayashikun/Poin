@@ -1,18 +1,24 @@
 use glium;
-use glium::backend::glutin::glutin::EventsLoop;
+use glium::backend::glutin::glutin::{EventsLoop, EventsLoopProxy};
 use glium::glutin::Event;
 use glium::{glutin, Surface};
+use std::sync::mpsc::Receiver;
+use std::time::Duration;
 
 pub struct EventHandler {
     pub event_loop: EventsLoop,
+    pub rx: Receiver<[f64; 2]>,
 }
 
 impl EventHandler {
-    pub fn new() -> Self {
+    pub fn new(rx: Receiver<[f64; 2]>) -> Self {
         EventHandler {
             event_loop: glutin::EventsLoop::new(),
+            rx,
         }
     }
+
+    pub fn enqueue(&self) {}
 
     pub fn start(
         &mut self,
@@ -54,6 +60,16 @@ impl EventHandler {
                         glutin::VirtualKeyCode::Escape => break 'render,
                         _ => (),
                     },
+                    glutin::Event::Awakened => {
+                        for p in self.rx.recv_timeout(Duration::from_millis(500)).iter() {
+                            let a = UIAction::MoveTo {
+                                x: p[0],
+                                y: p[1],
+                                normalized: true,
+                            };
+                            ui_actions.push(a);
+                        }
+                    }
                     _ => (),
                 }
                 match Action::new(event.clone()) {

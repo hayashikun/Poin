@@ -48,19 +48,24 @@ impl UiDispatcher {
                     self.state.circle_center[0] += x;
                     self.state.circle_center[1] += y;
                 }
-                UIAction::MoveTo { x, y, normalized } => {
+                UIAction::MoveTo {
+                    mut x,
+                    mut y,
+                    normalized,
+                } => {
                     if normalized {
-                        let x = x * self.state.window_width;
-                        let y = y * self.state.window_height;
+                        // x, y: 0-1
+                        x = (x - 0.5) * 1.2 * self.state.window_width;
+                        y = (0.5 - y) * 1.2 * self.state.window_height;
                     }
                     self.state.circle_center[0] = x;
                     self.state.circle_center[1] = y;
                 }
             }
         }
-        let circle = widget::Circle::fill(if self.state.init { 10.0 } else { 0.0 })
+        let circle = widget::Circle::fill(if self.state.init { 20.0 } else { 0.0 })
             .xy(self.state.circle_center)
-            .color(conrod_core::color::RED);
+            .color(conrod_core::color::GREEN);
         circle.set(self.widget_ids.circle, cell.borrow_mut());
         if !self.state.init
             && (self.state.circle_center[0] != 0.0 || self.state.circle_center[1] != 0.0)
