@@ -1,5 +1,5 @@
 use glium;
-use glium::backend::glutin::glutin::{EventsLoop, EventsLoopProxy};
+use glium::backend::glutin::glutin::EventsLoop;
 use glium::glutin::Event;
 use glium::{glutin, Surface};
 use std::sync::mpsc::Receiver;
@@ -17,8 +17,6 @@ impl EventHandler {
             rx,
         }
     }
-
-    pub fn enqueue(&self) {}
 
     pub fn start(
         &mut self,

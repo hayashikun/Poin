@@ -4,7 +4,8 @@ extern crate conrod_core;
 use std::sync::mpsc;
 
 mod event;
-mod grpc;
+mod proto;
+mod qoin;
 mod view;
 
 #[tokio::main]
@@ -14,8 +15,7 @@ async fn main() {
     let proxy = event_handler.event_loop.create_proxy();
 
     tokio::spawn(async {
-        // let result = grpc::hello::connect().await;
-        let result = grpc::hand_tracking::connect(proxy, tx).await;
+        let result = qoin::hand_tracking::connect(proxy, tx).await;
         println!("{:?}", result);
     });
 
