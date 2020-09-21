@@ -1,7 +1,9 @@
-use crate::proto::qoin::hand_tracking_client::HandTrackingClient;
-use crate::proto::qoin::HandTrackingRequest;
-use glium::backend::glutin::glutin::EventsLoopProxy;
 use std::sync::mpsc::Sender;
+
+use glium::backend::glutin::glutin::EventsLoopProxy;
+
+use crate::proto::qoin::hand_tracking_client::HandTrackingClient;
+use crate::proto::qoin::HandTrackingPullRequest;
 
 pub async fn connect(
     proxy: EventsLoopProxy,
@@ -9,8 +11,8 @@ pub async fn connect(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = HandTrackingClient::connect("http://[::1]:50051").await?;
 
-    let request = tonic::Request::new(HandTrackingRequest {});
-    let response = client.hand_tracking_stream(request).await?;
+    let request = tonic::Request::new(HandTrackingPullRequest {});
+    let response = client.hand_tracking_pull_stream(request).await?;
     println!("{:?}", response);
     let mut inbound = response.into_inner();
     while let Some(message) = inbound.message().await? {
@@ -25,6 +27,9 @@ pub async fn connect(
                 .iter()
                 .map(|l| l.y.unwrap_or(0.0) as f64)
                 .sum();
+            if x_sum == 0.0 && y_sum == 0.0 {
+                continue;
+            }
             let x = x_sum / landmark_list.landmark.len() as f64;
             let y = y_sum / landmark_list.landmark.len() as f64;
             tx.send([x, y]).expect("Failed to send x, y");

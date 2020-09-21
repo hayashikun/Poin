@@ -3,6 +3,9 @@ extern crate conrod_core;
 
 use std::sync::mpsc;
 
+use glium::backend::glutin::glutin::dpi::LogicalPosition;
+
+mod display;
 mod event;
 mod proto;
 mod qoin;
@@ -19,8 +22,11 @@ async fn main() {
         println!("{:?}", result);
     });
 
-    let display = view::display(&event_handler.event_loop);
+    let display = display::display(&event_handler.event_loop);
+    display
+        .gl_window()
+        .set_position(LogicalPosition { x: 0.0, y: 0.0 });
     let size = display.gl_window().window().get_outer_size();
-    let ui_manager = view::UiDispatcher::new(size.unwrap().width, size.unwrap().height);
-    event_handler.start(&display, ui_manager);
+    let view = view::View::new(size.unwrap().width, size.unwrap().height);
+    event_handler.start(&display, view);
 }

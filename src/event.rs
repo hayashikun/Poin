@@ -1,9 +1,10 @@
-use glium;
-use glium::backend::glutin::glutin::EventsLoop;
-use glium::glutin::Event;
-use glium::{glutin, Surface};
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
+
+use glium;
+use glium::backend::glutin::glutin::EventsLoop;
+use glium::glutin::dpi::LogicalPosition;
+use glium::{glutin, Surface};
 
 pub struct EventHandler {
     pub event_loop: EventsLoop,
@@ -18,13 +19,21 @@ impl EventHandler {
         }
     }
 
-    pub fn start(
-        &mut self,
-        display: &glium::Display,
-        ref mut ui_dispatcher: crate::view::UiDispatcher,
-    ) {
+    pub fn start(&mut self, display: &glium::Display, ref mut view: crate::view::View) {
         let mut renderer = conrod_glium::Renderer::new(display).unwrap();
         let image_map = conrod_core::image::Map::<glium::texture::Texture2d>::new();
+        let monitor_size = display.gl_window().get_current_monitor().get_dimensions();
+        let dpi_factor = display.gl_window().get_current_monitor().get_hidpi_factor();
+        let x_factor = monitor_size.width / dpi_factor;
+        let y_factor = monitor_size.height / dpi_factor;
+
+        let move_to_window = |x: f64, y: f64| {
+            display.gl_window().set_position(LogicalPosition { x, y });
+        };
+        let move_window = |dx: f64, dy: f64| {
+            let p = display.gl_window().get_position().unwrap();
+            move_to_window(p.x + dx, p.y + dy);
+        };
 
         let mut events = Vec::new();
         'render: loop {
@@ -40,7 +49,6 @@ impl EventHandler {
                 })
             }
 
-            let mut ui_actions = Vec::new();
             for event in events.drain(..) {
                 match event.clone() {
                     glutin::Event::WindowEvent {
@@ -56,28 +64,23 @@ impl EventHandler {
                         ..
                     } => match virtual_keycode {
                         glutin::VirtualKeyCode::Escape => break 'render,
+                        glutin::VirtualKeyCode::Left => move_window(-10.0, 0.0),
+                        glutin::VirtualKeyCode::Right => move_window(10.0, 0.0),
+                        glutin::VirtualKeyCode::Up => move_window(0.0, -10.0),
+                        glutin::VirtualKeyCode::Down => move_window(0.0, 10.0),
                         _ => (),
                     },
                     glutin::Event::Awakened => {
                         for p in self.rx.recv_timeout(Duration::from_millis(500)).iter() {
-                            let a = UIAction::MoveTo {
-                                x: p[0],
-                                y: p[1],
-                                normalized: true,
-                            };
-                            ui_actions.push(a);
+                            move_to_window(p[0] * x_factor, p[1] * y_factor)
                         }
                     }
                     _ => (),
                 }
-                match Action::new(event.clone()) {
-                    Some(Action::UI { action: a }) => ui_actions.push(a),
-                    _ => (),
-                }
             }
-            ui_dispatcher.dispatch(ui_actions);
+            view.update();
 
-            if let Some(primitives) = ui_dispatcher.ui.draw_if_changed() {
+            if let Some(primitives) = view.ui.draw_if_changed() {
                 renderer.fill(display, primitives, &image_map);
                 let mut target = display.draw();
                 target.clear_color(0., 0., 0., 0.);
@@ -85,46 +88,5 @@ impl EventHandler {
                 target.finish().unwrap();
             }
         }
-    }
-}
-
-enum Action {
-    UI { action: UIAction },
-}
-pub enum UIAction {
-    Move { x: f64, y: f64 },
-    MoveTo { x: f64, y: f64, normalized: bool },
-}
-
-impl Action {
-    pub fn new(event: Event) -> Option<Self> {
-        fn move_action(x: f64, y: f64) -> Option<Action> {
-            Some(Action::UI {
-                action: UIAction::Move { x, y },
-            })
-        }
-
-        let pe = match event {
-            glutin::Event::WindowEvent {
-                event:
-                    glutin::WindowEvent::KeyboardInput {
-                        input:
-                            glutin::KeyboardInput {
-                                virtual_keycode: Some(virtual_keycode),
-                                ..
-                            },
-                        ..
-                    },
-                ..
-            } => match virtual_keycode {
-                glutin::VirtualKeyCode::Left => move_action(-10.0, 0.0),
-                glutin::VirtualKeyCode::Right => move_action(10.0, 0.0),
-                glutin::VirtualKeyCode::Up => move_action(0.0, 10.0),
-                glutin::VirtualKeyCode::Down => move_action(0.0, -10.0),
-                _ => None,
-            },
-            _ => None,
-        };
-        return pe;
     }
 }
